@@ -31,18 +31,18 @@ app.post('/api/search', async (req, res) => {
 
         // Navigate to PPSC Planner
         console.log('Navigating to PPSC Planner...');
-        await page.goto('https://ppsc.gop.pk/planner/showdata.aspx', { timeout: 60000 });
+        await page.goto('https://ppsc.gop.pk/planner/showdata.aspx', { timeout: 0 });
 
         // Wait for the table to load
         // The table ID seems to be dynamic or DataTables_Table_0
         console.log('Waiting for table...');
-        await page.waitForSelector('table.dataTable', { timeout: 30000 });
+        await page.waitForSelector('table.dataTable', { timeout: 0 });
 
         // Change entries to 100
         console.log('Changing entries to 100...');
         // Try to find the length select. It's usually in a div with class dataTables_length
         const selectSelector = 'select[name*="_length"]'; // Matches DataTables_Table_0_length or similar
-        await page.waitForSelector(selectSelector, { timeout: 5000 });
+        await page.waitForSelector(selectSelector, { timeout: 0 });
         await page.selectOption(selectSelector, '100');
 
         // Wait for the table to update
@@ -179,14 +179,14 @@ async function runScraperTask(keywords, phoneNo) {
           });
           
         const page = await browser.newPage();
-        await page.goto('https://ppsc.gop.pk/planner/showdata.aspx', { timeout: 60000 });
-        await page.waitForSelector('table.dataTable', { timeout: 30000 });
+        await page.goto('https://ppsc.gop.pk/planner/showdata.aspx', { timeout: 0 });
+        await page.waitForSelector('table.dataTable', { timeout: 0 });
 
         // Change entries to 100
         const selectSelector = 'select[name*="_length"]';
         if (await page.$(selectSelector)) {
             await page.selectOption(selectSelector, '100');
-            await page.waitForTimeout(3000);
+            await page.waitForTimeout(0);
         }
 
         const jobs = await page.evaluate(() => {
