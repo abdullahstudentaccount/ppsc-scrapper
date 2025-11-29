@@ -1,9 +1,10 @@
 {
-  "name": "aa9e6a19-1a09-46e7-887f-ebab40c3c99c",
+  "name": "ppsc-scrapper",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
