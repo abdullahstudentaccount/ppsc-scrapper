@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPSC Job Scraper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <div class="container">
+        <header>
+            <h1>PPSC Job Scraper</h1>
+            <p>Find your dream job on PPSC Planner</p>
+        </header>
+
+        <main>
+            <div class="search-box">
+                <input type="text" id="keywords" placeholder="Enter keywords (e.g., Assistant, Teacher)...">
+                <select id="interval">
+                    <option value="1min">1 Min</option>
+                    <option value="30mins">30 Mins</option>
+                    <option value="1hour">1 Hour</option>
+                    <option value="8hours">8 Hours</option>
+                    <option value="1day">1 Day</option>
+                    <option value="1week">1 Week</option>
+                </select>
+                <input type="text" id="phoneNo" placeholder="Phone Number (e.g., +923001234567)">
+                <button id="searchBtn">Search Now</button>
+                <button id="startSchedulerBtn" class="btn-secondary">Start Auto-Scraper</button>
+                <button id="stopSchedulerBtn" class="btn-danger hidden">Stop Auto-Scraper</button>
+            </div>
+
+            <div id="status" class="status hidden">
+                <div class="spinner"></div>
+                <p id="statusText">Searching...</p>
+            </div>
+
+            <div id="results" class="results hidden">
+                <h2>Results <span id="resultCount"></span></h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sr No</th>
+                                <th>Case No</th>
+                                <th>Post Name</th>
+                                <th>Department</th>
+                                <th>Closing Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- Results will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pagination" class="pagination hidden">
+                <button id="prevBtn" disabled>Previous</button>
+                <span id="pageInfo">Page 1</span>
+                <button id="nextBtn" disabled>Next</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const searchBtn = document.getElementById('searchBtn');
+        const startSchedulerBtn = document.getElementById('startSchedulerBtn');
+        const stopSchedulerBtn = document.getElementById('stopSchedulerBtn');
+        const keywordsInput = document.getElementById('keywords');
+        const intervalInput = document.getElementById('interval');
+        const phoneInput = document.getElementById('phoneNo');
+        const statusDiv = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const resultsDiv = document.getElementById('results');
+        const resultsBody = document.getElementById('resultsBody');
+        const resultCount = document.getElementById('resultCount');
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const paginationDiv = document.getElementById('pagination');
+
+        let currentKeywords = [];
+        let currentPage = 1;
+        let totalPages = 1;
+
+        async function fetchJobs(page) {
+            // Reset UI for loading
+            resultsBody.innerHTML = '';
+            statusDiv.classList.remove('hidden');
+            statusText.textContent = `Loading page ${page}...`;
+            resultsDiv.classList.add('hidden');
+            paginationDiv.classList.add('hidden');
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/search?page=${page}&limit=15`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keywords: currentKeywords })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.classList.add('hidden');
+                    resultsDiv.classList.remove('hidden');
+                    resultCount.textContent = `(${data.count} total)`;
+
+                    if (data.data.length === 0) {
+                        resultsBody.innerHTML = '<tr><td colspan="7" class="no-results">No jobs found matching your keywords.</td></tr>';
+                        paginationDiv.classList.add('hidden');
+                    } else {
+                        data.data.forEach(job => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${job.srNo}</td>
+                                <td>${job.caseNo}</td>
+                                <td>${job.postName}</td>
+                                <td>${job.department}</td>
+                                <td>${job.closingDate || '-'}</td>
+                                <td>${job.status}</td>
+                                <td><a href="${job.link}" target="_blank" class="btn-link">View</a></td>
+                            `;
+                            resultsBody.appendChild(row);
+                        });
+
+                        // Update Pagination
+                        currentPage = data.page;
+                        totalPages = data.totalPages;
+                        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+                        prevBtn.disabled = currentPage <= 1;
+                        nextBtn.disabled = currentPage >= totalPages;
+
+                        if (totalPages > 1) {
+                            paginationDiv.classList.remove('hidden');
+                        } else {
+                            paginationDiv.classList.add('hidden');
+                        }
+                    }
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                statusText.textContent = `Error: ${error.message}`;
+                statusText.style.color = 'red';
+            } finally {
+                searchBtn.disabled = false;
+            }
+        }
+
+        searchBtn.addEventListener('click', () => {
+            const keywords = keywordsInput.value.split(',').map(k => k.trim()).filter(k => k);
+            if (keywords.length === 0) {
+                alert('Please enter at least one keyword');
+                return;
+            }
+            currentKeywords = keywords;
+            currentPage = 1;
+            fetchJobs(currentPage);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                fetchJobs(currentPage - 1);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                fetchJobs(currentPage + 1);
+            }
+        });
+
+        startSchedulerBtn.addEventListener('click', async () => {
+            const keywords = keywordsInput.value.split(',').map(k => k.trim()).filter(k => k);
+            const interval = intervalInput.value;
+            const phoneNo = phoneInput.value;
+
+            if (keywords.length === 0 || !phoneNo) {
+                alert('Please enter keywords and phone number');
+                return;
+            }
+
+            startSchedulerBtn.disabled = true;
+            statusDiv.classList.remove('hidden');
+            statusText.textContent = 'Starting scheduler...';
+
+            try {
+                const response = await fetch('/api/start-job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keywords, interval, phoneNo })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Scheduler started! Check server logs for WhatsApp simulation.');
+                    startSchedulerBtn.classList.add('hidden');
+                    stopSchedulerBtn.classList.remove('hidden');
+                    statusText.textContent = `Scheduler running. Interval: ${interval}. Phone: ${phoneNo}`;
+                } else {
+                    alert('Failed to start: ' + data.error);
+                    startSchedulerBtn.disabled = false;
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+                startSchedulerBtn.disabled = false;
+            }
+        });
+
+        stopSchedulerBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/stop-job', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Scheduler stopped.');
+                    stopSchedulerBtn.classList.add('hidden');
+                    startSchedulerBtn.classList.remove('hidden');
+                    startSchedulerBtn.disabled = false;
+                    statusText.textContent = 'Scheduler stopped.';
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "aa9e6a19-1a09-46e7-887f-ebab40c3c99c",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "playwright": "^1.57.0"
+  }
+}
