@@ -23,7 +23,12 @@ app.post('/api/search', async (req, res) => {
 
     let browser = null;
     try {
-        browser = await chromium.launch({ headless: true });
+        // browser = await chromium.launch({ headless: true });
+        browser = await chromium.launch({
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+          });
+          
         const page = await browser.newPage();
 
         // Navigate to PPSC Planner
@@ -168,7 +173,12 @@ async function runScraperTask(keywords, phoneNo) {
 
     let browser = null;
     try {
-        browser = await chromium.launch({ headless: true });
+        // browser = await chromium.launch({ headless: true });
+        browser = await chromium.launch({
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+          });
+          
         const page = await browser.newPage();
         await page.goto('https://ppsc.gop.pk/planner/showdata.aspx', { timeout: 60000 });
         await page.waitForSelector('table.dataTable', { timeout: 30000 });
