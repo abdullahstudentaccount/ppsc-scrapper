@@ -6,9 +6,6 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("PPSC Scraper API is running!");
-});
 
 app.use(express.static('public'));
 app.use(express.json());
