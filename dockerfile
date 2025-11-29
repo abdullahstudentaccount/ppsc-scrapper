@@ -1,42 +1,43 @@
-# Use Node.js 18 LTS
-FROM node:18
+# Base Node image
+FROM node:22-bullseye
 
-# Install Linux dependencies needed by Chromium
+# Install system dependencies required by Playwright
 RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
     libnss3 \
+    libatk1.0-0 \
     libatk-bridge2.0-0 \
+    libcups2 \
     libxkbcommon0 \
-    libgtk-3-0 \
-    libgbm1 \
-    libasound2 \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libasound2 \
     libxshmfence1 \
-    libdrm2 \
-    gcc g++ make \
-    curl \
     wget \
-    unzip \
+    ca-certificates \
+    fonts-liberation \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json & package-lock.json
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install Node.js dependencies
-RUN npm install
+RUN npm ci
 
 # Install Chromium for Playwright
 RUN npx playwright install chromium
 
-# Copy project files
+# Copy project source code
 COPY . .
 
-# Set environment variable for Railway port
-ENV PORT=3000
+# Expose port (optional, matches your app)
+EXPOSE 8080
 
 # Start the server
 CMD ["node", "server.js"]
