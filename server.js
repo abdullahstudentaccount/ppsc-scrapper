@@ -23,7 +23,8 @@ app.post('/api/search', async (req, res) => {
         // browser = await chromium.launch({ headless: true });
         browser = await chromium.launch({
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            timeout: 0
           });
           
         const page = await browser.newPage();
@@ -173,7 +174,8 @@ async function runScraperTask(keywords, phoneNo) {
         // browser = await chromium.launch({ headless: true });
         browser = await chromium.launch({
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            timeout: 0
           });
           
         const page = await browser.newPage();
